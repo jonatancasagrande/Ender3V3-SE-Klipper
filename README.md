@@ -1,17 +1,11 @@
-Welcome to the Klipper project!
+Bienvenidos a Ender3V3-SE Klipper Edition!
 
-[![Klipper](docs/img/klipper-logo-small.png)](https://www.klipper3d.org/)
+Este fork de Klipper fue diseñado con la finalidad de dotar a la impresora Creality Ender3-V3SE de la capacidad de operar bajo Klipper manteniendo la función de Display y la nivelación automática
 
-https://www.klipper3d.org/
+Es importante destacar que para que funcione debe instalar esta versión de Klipper en una Raspberry Pi o similar
 
-The Klipper firmware controls 3d-Printers. It combines the power of a
-general purpose computer with one or more micro-controllers. See the
-[features document](https://www.klipper3d.org/Features.html) for more
-information on why you should use the Klipper software.
+El código fuente fue adaptado desde el original de Klipper y desde el fork de JP Curti (https://github.com/jpcurti/E3V3SE_display_klipper).
 
-Start by [installing Klipper software](https://www.klipper3d.org/Installation.html).
+En la versión inicial se corrigio un problema sobre el fichero prtouch el cual generaba que el nozzle quede algo más alejado de la cama calefactora.
 
-Klipper software is Free Software. See the [license](COPYING) or read
-the [documentation](https://www.klipper3d.org/Overview.html). We
-depend on the generous support from our
-[sponsors](https://www.klipper3d.org/Sponsors.html).
+Gracias por su tiempo :-)
