@@ -8,4 +8,16 @@ El código fuente fue adaptado desde el original de Klipper y desde el fork de J
 
 En la versión inicial se corrigio un problema sobre el fichero prtouch el cual generaba que el nozzle quede algo más alejado de la cama calefactora.
 
+Para compilar su propio firmware debe configurar con el comando make menuconfig ejecutado desde la consola en la carpeta de Klipper
+
+Verifique que las opciones se vean como en la siguiente imagen:
+
+![image](https://github.com/user-attachments/assets/3d4ad8d0-8f08-411f-b565-5a1ced36bc91)
+
+Luego presione Esc y confirme con Y.
+
+Escriba en la consola make y espere , al finalizar se generara un fichero llamado Klipper.bin el cual deberá grabar en su impresora 3d en reemplazo del firmware.
+
+Importante: recuerde que la configuración anterior habilita la conexión vía USB-C de su impresora , no necesita utilizar el cable UART para conectarse a ella.
+
 Gracias por su tiempo :-)
