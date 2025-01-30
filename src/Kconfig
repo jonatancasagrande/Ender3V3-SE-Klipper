@@ -1,6 +1,6 @@
 # Main Kconfig settings
 
-mainmenu "Klipper Firmware Configuration"
+mainmenu "Klipper Firmware Configuration - Ender3V3-SE Edition"
 
 config LOW_LEVEL_OPTIONS
     bool "Enable extra low-level configuration options"
