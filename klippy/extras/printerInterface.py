@@ -151,7 +151,7 @@ class PrinterData:
 
     MACHINE_SIZE = "220x220x250"
     SHORT_BUILD_VERSION = "1.00"
-    CORP_WEBSITE_E = "www.klipper3d.org"
+    CORP_WEBSITE_E = "Klipper OS"
 
     def __init__(self, config):
         self.printer = config.get_printer()
@@ -432,6 +432,12 @@ class PrinterData:
 
     def sendGCode(self, Gcode):
         self.gcode._process_commands([Gcode])
+
+    def printerCalibrate(self):
+        self.sendGcode('PRINTER_CALIBRATE')
+        
+    def beep(self):
+        self.sendGcode('BEEP')
 
     def probe_calibrate(self):
         self.sendGCode('G28') # home the printer

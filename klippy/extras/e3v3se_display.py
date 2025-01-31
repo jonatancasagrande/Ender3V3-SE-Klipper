@@ -548,7 +548,7 @@ class E3v3seDisplay:
         self.checkkey = self.MainMenu
         self.pd = PrinterData(config)
 
-        self._update_interval = 1
+        self._update_interval = 0.5
         self._update_timer = self.reactor.register_timer(self.EachMomentUpdate)
 
 
@@ -673,9 +673,10 @@ class E3v3seDisplay:
                     # The leveling menu is not implemented yet, therefore it popups
                     # a "feature not available" window
                     self.popup_caller = self.MainMenu
-                    self.checkkey = self.FeatureNotAvailable
-                    self.Draw_FeatureNotAvailable_Popup()
-
+                    #self.checkkey = self.FeatureNotAvailable
+                    self.DrawCalibrationPrinter()
+                    
+                    self.Draw_PopupCalibrateOk()                        
                 else:
                     self.checkkey = self.Info
                     self.Draw_Info_Menu()
@@ -2717,7 +2718,7 @@ class E3v3seDisplay:
         if self.select_prepare.now:
             self.Draw_Menu_Cursor(self.select_prepare.now)
         self.Draw_Status_Area()
-
+        
     def Draw_Control_Menu(self):
         self.Clear_Main_Window()
         # Draw "Control" on header
@@ -2821,6 +2822,93 @@ class E3v3seDisplay:
         )
        
         self.Draw_Status_Area()
+
+    def Draw_Control_Menu(self):
+        self.Clear_Main_Window()
+        # Draw "Control" on header
+        self.lcd.draw_icon(
+            False,
+            self.selected_language,
+            self.icon_TEXT_header_control,
+            self.HEADER_HEIGHT,
+            1,
+        )
+
+        self.Draw_Back_First(self.select_control.now == 0)
+
+        # self.Frame_TitleCopy(1, 128, 2, 176, 12)
+        # self.lcd.move_screen_area(1, 1, 89, 83, 101, self.LBLX, self.MBASE(self.CONTROL_CASE_TEMP))  # Temperature >
+        # self.lcd.move_screen_area(1, 84, 89, 128, 99, self.LBLX, self.MBASE(self.CONTROL_CASE_MOVE))  # Motion >
+        # self.lcd.move_screen_area(1, 0, 104, 25, 115, self.LBLX, self.MBASE(self.CONTROL_CASE_INFO))  # Info >
+
+        if self.select_control.now and self.select_control.now < self.MROWS:
+            self.Draw_Menu_Cursor(self.select_control.now)
+
+        # # Draw icons and lines
+        self.Draw_Menu_Line_With_Only_Icons(
+            1, self.icon_temperature, self.icon_TEXT_temperature
+        )
+        self.Draw_More_Icon(1)
+        self.Draw_Menu_Line_With_Only_Icons(2, self.icon_motion, self.icon_TEXT_motion)
+        self.Draw_More_Icon(2)
+        self.Draw_Menu_Line_With_Only_Icons(3, self.icon_info, self.icon_TEXT_Info)
+        self.Draw_More_Icon(3)
+        self.Draw_Status_Area()
+
+    def Draw_Leveling_Menu(self):
+        self.Clear_Main_Window()
+
+    #pantalla nivelacion
+    def DrawCalibrationPrinter(self):
+        """
+        Draws the "Info" menu on the display.
+        As the text stays on the bottom of each line instead of
+        a normal menu item, this is manually drawn.
+        """
+        self.Clear_Main_Window()
+        # Draw "Info" on header
+        self.lcd.draw_icon(
+            False,
+            self.selected_language,
+            self.icon_TEXT_header_leveling,
+            self.HEADER_HEIGHT,
+            1,
+        )
+
+       
+
+        # Bed size 80,95,110,140,155,170,200,215,230,260
+
+        #elf.lcd.draw_icon(True, self.ICON, self.icon_leveling, 20, 20)
+        #self.lcd.draw_icon(True, self.ICON, self.icon_leveling, 20, 20)
+        self.lcd.draw_string(
+            False,
+            self.lcd.font_6x12,
+            self.color_white,
+            self.color_background_black,
+            85,
+            125,
+            "Please Wait",
+        )
+        self.lcd.draw_string(
+            False,
+            self.lcd.font_6x12,
+            self.color_white,
+            self.color_background_black,
+            30,
+            150,
+            "Calibration in progress",
+        )
+        #)    
+        
+        self.Draw_Status_Area() 
+        
+        self.pd.sendGCode("PRINT_CALIBRATION")
+        
+        
+        
+        self.Draw_PopupCalibrateOk()
+
 
     def Draw_Tune_Menu(self):
         self.Clear_Main_Window()
@@ -3380,7 +3468,17 @@ class E3v3seDisplay:
             True, self.selected_language, self.icon_confirm_button, 80, 154
         )
         self.lcd.draw_rectangle(0, self.color_white, 80, 154, 160, 185)
-
+    
+        
+    def Draw_PopupCalibrateOk(self):
+            """
+            Displays a popup window indicating that this feature is not available.
+            """
+            #self.pd.sendGCode("BEEP")
+            
+            self.pd.sendGCode("SAVE_CONFIG")       
+                         
+           
     def Erase_Menu_Cursor(self, line):
         self.lcd.draw_rectangle(
             1,
