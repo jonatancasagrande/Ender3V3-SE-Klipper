@@ -20,4 +20,8 @@ Escriba en la consola make y espere , al finalizar se generara un fichero llamad
 
 Importante: recuerde que la configuración anterior habilita la conexión vía USB-C de su impresora , no necesita utilizar el cable UART para conectarse a ella.
 
+IMPORTANTE: su printer.cfg debe tener dentro de la sección [printer] el parametro is_direct , el mismo puede tomar dos estados: True o False en función de si su impresora tiene extrusor directo o Bowden
+
 Gracias por su tiempo :-)
+
+
