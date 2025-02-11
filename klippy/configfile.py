@@ -61,6 +61,10 @@ class ConfigWrapper:
     def get(self, option, default=sentinel, note_valid=True):
         return self._get_wrapper(self.fileconfig.get, option, default,
                                  note_valid=note_valid)
+    def get_status(self, eventtime):
+        return {
+             'direct_drive': bool(self.direct_drive)  # Asegurar valor booleano
+        }
     def getint(self, option, default=sentinel, minval=None, maxval=None,
                note_valid=True):
         return self._get_wrapper(self.fileconfig.getint, option, default,
@@ -119,6 +123,15 @@ class ConfigWrapper:
     def getsection(self, section):
         return ConfigWrapper(self.printer, self.fileconfig,
                              self.access_tracking, section)
+                             
+    #cambio                         
+    def is_direct_drive(self):
+        if not self.fileconfig.has_option("printer", "direct_drive"):
+            return False  # Valor por defecto
+        value = self.getboolean("direct_drive", default=False)
+        self.access_tracking[("printer", "direct_drive")] = value  # Registrar acceso correctamente
+        return value
+                         
     def has_section(self, section):
         return self.fileconfig.has_section(section)
     def get_prefix_sections(self, prefix):
@@ -433,6 +446,10 @@ class ConfigValidate:
         access_tracking.update(self.autosave_options)
         # Note locally used sections
         valid_sections = { s: 1 for s, o in self.printer.lookup_objects() }
+        
+        valid_sections["printer"] = 1  # Asegurar que printer está registrado
+        access_tracking[("printer", "direct_drive")] = True  # Evitar error de validación
+
         valid_sections.update({ s: 1 for s, o in access_tracking })
         # Validate that there are no undefined parameters in the config file
         for section_name in fileconfig.sections():
@@ -452,8 +469,13 @@ class ConfigValidate:
         self.autosave_options.clear()
     def _build_status_settings(self):
         self.status_settings = {}
+        configfile = self.printer.lookup_object("configfile")
+        self.status_settings.setdefault("printer", {})["direct_drive"] = configfile.direct_drive
+        self.access_tracking[("printer", "direct_drive")] = True  # Asegurar que se registra correctamente
+       
         for (section, option), value in self.access_tracking.items():
             self.status_settings.setdefault(section, {})[option] = value
+        
     def get_status(self, eventtime):
         return {'settings': self.status_settings}
 
@@ -472,6 +494,7 @@ class PrinterConfig:
         self.deprecate_warnings = []
         self.status_raw_config = {}
         self.status_warnings = []
+        self.direct_drive = False  # Inicialización predeterminada
     def get_printer(self):
         return self.printer
     def read_config(self, filename):
@@ -485,6 +508,8 @@ class PrinterConfig:
             autosave_fileconfig)
         config = ConfigWrapper(self.printer, fileconfig,
                                access_tracking, 'printer')
+        self.direct_drive = fileconfig.getboolean("printer", "direct_drive", fallback=False)  # Leer correctamente
+        print(f"Direct Drive Loaded: {self.direct_drive}")  # Debug
         self._build_status_config(config)
         return config
     def log_config(self, config):
@@ -525,11 +550,16 @@ class PrinterConfig:
             for option in section.get_prefix_options(''):
                 section_status[option] = section.get(option, note_valid=False)
     def get_status(self, eventtime):
+        fileconfig = self.autosave.fileconfig
+        direct_drive_value = fileconfig.getboolean("printer", "direct_drive", fallback=False)
         status = {'config': self.status_raw_config,
-                  'warnings': self.status_warnings}
+                  'warnings': self.status_warnings,
+                  'direct_drive':self.direct_drive}
         status.update(self.autosave.get_status(eventtime))
         status.update(self.validate.get_status(eventtime))
+        print(f"[DEBUG] get_status -> direct_drive: {direct_drive_value}")  # Debug log
         return status
+
     # Autosave functions
     def set(self, section, option, value):
         self.autosave.set(section, option, value)
