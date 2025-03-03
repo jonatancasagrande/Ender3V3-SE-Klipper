@@ -61,6 +61,17 @@ class ConfigWrapper:
     def get(self, option, default=sentinel, note_valid=True):
         return self._get_wrapper(self.fileconfig.get, option, default,
                                  note_valid=note_valid)
+    
+    def get_displayexternal_config(self):
+        # Recuperar configuración de DisplayExternal desde printer.cfg
+        fileconfig = self.autosave.fileconfig
+        baudrate = fileconfig.getint("displayexternal", "baudrate", fallback=115200)
+        
+        serial_port = fileconfig.get("displayexternal", "serial_port", fallback="/dev/ttyUSB0")
+        ready_text = fileconfig.get("displayexternal","ready_text",fallback="Display External V1")
+        return {'baudrate': baudrate, 'serial_port': serial_port, 'ready_text': ready_text}
+
+
     def get_status(self, eventtime):
         return {
              'direct_drive': bool(self.direct_drive)  # Asegurar valor booleano
@@ -324,6 +335,17 @@ class ConfigAutoSave:
         cfgrdr.append_fileconfig(regular_fileconfig,
                                  autosave_data, '*AUTOSAVE*')
         return regular_fileconfig, self.fileconfig
+    
+    def get_displayexternal_config(self):
+        # Recuperar configuración de DisplayExternal desde printer.cfg
+        fileconfig = self.autosave.fileconfig
+        baudrate = fileconfig.getint("displayexternal", "baudrate", fallback=115200)
+        
+        serial_port = fileconfig.get("displayexternal", "serial_port", fallback="/dev/ttyUSB0")
+        ready_text = fileconfig.get("displayexternal","ready_text",fallback="Display External V1")
+        return {'baudrate': baudrate, 'serial_port': serial_port, 'ready_text': ready_text}
+
+
     def get_status(self, eventtime):
         return {'save_config_pending': self.save_config_pending,
                 'save_config_pending_items': self.status_save_pending}
@@ -448,9 +470,11 @@ class ConfigValidate:
         valid_sections = { s: 1 for s, o in self.printer.lookup_objects() }
         
         valid_sections["printer"] = 1  # Asegurar que printer está registrado
+        valid_sections["DisplayExternal"] = 1  # Agregar soporte a DisplayExternal
         access_tracking[("printer", "direct_drive")] = True  # Evitar error de validación
 
         valid_sections.update({ s: 1 for s, o in access_tracking })
+        valid_sections['displayexternal'] = 1  # Agregar soporte explícito
         # Validate that there are no undefined parameters in the config file
         for section_name in fileconfig.sections():
             section = section_name.lower()
@@ -459,7 +483,7 @@ class ConfigValidate:
                             % (section,))
             for option in fileconfig.options(section_name):
                 option = option.lower()
-                if (section, option) not in access_tracking:
+                if (section, option) not in access_tracking and not (section == 'displayexternal' and option in ['baudrate', 'serial_port','ready_text']):  # Permitir baudrate y serial_port en DisplayExternal  # Permitir baudrate en DisplayExternal  # Permitir opciones en DisplayExternal
                     raise error("Option '%s' is not valid in section '%s'"
                                 % (option, section))
         # Setup get_status()
@@ -476,6 +500,19 @@ class ConfigValidate:
         for (section, option), value in self.access_tracking.items():
             self.status_settings.setdefault(section, {})[option] = value
         
+    
+    def get_displayexternal_config(self):
+        # Recuperar configuración de DisplayExternal desde printer.cfg
+        fileconfig = self.autosave.fileconfig
+        baudrate = fileconfig.getint("displayexternal", "baudrate", fallback=115200)
+        
+        serial_port = fileconfig.get("displayexternal", "serial_port", fallback="/dev/ttyUSB0")
+    
+        ready_text = fileconfig.get("displayexternal","ready_text",fallback="Display External V1")
+        
+        return {'baudrate': baudrate, 'serial_port': serial_port, 'ready_text': ready_text}
+
+
     def get_status(self, eventtime):
         return {'settings': self.status_settings}
 
@@ -493,6 +530,8 @@ class PrinterConfig:
         self.runtime_warnings = []
         self.deprecate_warnings = []
         self.status_raw_config = {}
+        self.status_raw_config['displayexternal'] = {}  # Asegurar que DisplayExternal se incluya
+        self.status_raw_config['DisplayExternal'] = {}  # Inicializar sección DisplayExternal
         self.status_warnings = []
         self.direct_drive = False  # Inicialización predeterminada
     def get_printer(self):
@@ -545,10 +584,25 @@ class PrinterConfig:
     # Status reporting
     def _build_status_config(self, config):
         self.status_raw_config = {}
+        self.status_raw_config['displayexternal'] = {}  # Asegurar que DisplayExternal se incluya
+        self.status_raw_config['DisplayExternal'] = {}  # Inicializar sección DisplayExternal
         for section in config.get_prefix_sections(''):
             self.status_raw_config[section.get_name()] = section_status = {}
             for option in section.get_prefix_options(''):
                 section_status[option] = section.get(option, note_valid=False)
+    
+    def get_displayexternal_config(self):
+        # Recuperar configuración de DisplayExternal desde printer.cfg
+        fileconfig = self.autosave.fileconfig
+        baudrate = fileconfig.getint("displayexternal", "baudrate", fallback=115200)
+        
+        serial_port = fileconfig.get("displayexternal", "serial_port", fallback="/dev/ttyUSB0")
+        
+        ready_text = fileconfig.get("displayexternal","ready_text",fallback="Display External V1")
+        return {'baudrate': baudrate, 'serial_port': serial_port, 'ready_text': ready_text}
+
+
+
     def get_status(self, eventtime):
         fileconfig = self.autosave.fileconfig
         direct_drive_value = fileconfig.getboolean("printer", "direct_drive", fallback=False)
